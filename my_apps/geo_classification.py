@@ -162,8 +162,8 @@ class initial_setting:
                  'Obs_DataGroupby': 'Single',
                  'Obs_Suffix': '',
                  'Obs_Prefix': 'soilc_0.5x0.5',
-                 'Obs_Syear': 0,
-                 'Obs_Eyear': 0,
+                 'Obs_Syear': 2000,
+                 'Obs_Eyear': 2000,
                  'figplot': True,
                  'cSoilAbove1m': '*****'},
             'Nitrogen_Fixation_LIST':
@@ -182,8 +182,8 @@ class initial_setting:
                  'Obs_DataGroupby': 'Single',
                  'Obs_Suffix': '',
                  'Obs_Prefix': 'fBNF_0.5x0.5',
-                 'Obs_Syear': 0,
-                 'Obs_Eyear': 0,
+                 'Obs_Syear': 2000,
+                 'Obs_Eyear': 2000,
                  'figplot': True,
                  'fBNF': '*****'},
             'Evapotranspiration_LIST':
@@ -422,8 +422,8 @@ class initial_setting:
                  'Obs_DataGroupby': 'Single',
                  'Obs_Suffix': '',
                  'Obs_Prefix': 'NSIDC_0.5x0.5',
-                 'Obs_Syear': 0,
-                 'Obs_Eyear': 0,
+                 'Obs_Syear': 2000,
+                 'Obs_Eyear': 2000,
                  'figplot': True,
                  'permafrost_extent': '*****'},
             'Albedo_LIST':
@@ -833,42 +833,49 @@ class initial_setting:
                   'Surface_Air_Temperature': False}
         return option
 
+    def classification(self):
+        classifications = {
+            "Ecosystem and Carbon Cycle":
+                {'Biomass',
+                 'LAI',
+                 'BurnedArea',
+                 'Global_Net_Ecosystem_Carbon_Balance',
+                 'Gross_Primary_Productivity',
+                 'Ecosystem_Respiration',
+                 'Soil_Carbon',
+                 'Nitrogen_Fixation'
+                 },
+            "Hydrology Cycle": {
+                'Evapotranspiration',
+                'Transpiration',
+                'Interception',
+                'Soil_Evaporation',
+                'Soil_Moisture',
+                'Runoff',
+                'Inundation',
+                'Latent_Heat',
+                'Sensible_Heat',
+                'Terrestrial_Water_Storage_Anomaly',
+                'Snow_Water_Equivalent',
+                'Permafrost'},
+            "Radiation and Energy Cycle": {
 
-    # options = {'Biomass': Biomass,
-    #            'LAI': LAI,
-    #            'BurnedArea': BurnedArea,
-    #            'Global_Net_Ecosystem_Carbon_Balance': Global_Net_Ecosystem_Carbon_Balance,
-    #            'Gross_Primary_Productivity': Gross_Primary_Productivity,
-    #            'Ecosystem_Respiration': Ecosystem_Respiration,
-    #            'Soil_Carbon': Soil_Carbon,
-    #            'Nitrogen_Fixation': Nitrogen_Fixation,
-    #
-    #            'Evapotranspiration': Evapotranspiration,
-    #            'Transpiration': Transpiration,
-    #            'Interception': Interception,
-    #            'Soil_Evaporation': Soil_Evaporation,
-    #            'Soil_Moisture': Soil_Moisture,
-    #            'Runoff': Runoff,
-    #            'Inundation': Inundation,
-    #            'Terrestrial_Water_Storage_Anomaly': Terrestrial_Water_Storage_Anomaly,
-    #            'Snow_Water_Equivalent': Snow_Water_Equivalent,
-    #            'Permafrost': Permafrost,
-    #
-    #            'Albedo': Albedo,
-    #            'Surface_Upward_SW_Radiation': Surface_Upward_SW_Radiation,
-    #            'Surface_Upward_LW_Radiation': Surface_Upward_LW_Radiation,
-    #            'Surface_Net_SW_Radiation': Surface_Net_SW_Radiation,
-    #            'Surface_Net_LW_Radiation': Surface_Net_LW_Radiation,
-    #            'Surface_Net_Radiation': Surface_Net_Radiation,
-    #            'Ground_Heat_Flux': Ground_Heat_Flux,
-    #            'Latent_Heat': Latent_Heat,
-    #            'Sensible_Heat': Sensible_Heat,
-    #
-    #            'Diurnal_Temperature_Range': Diurnal_Temperature_Range,
-    #            'Diurnal_Max_Temperature': Diurnal_Max_Temperature,
-    #            'Diurnal_Min_Temperature': Diurnal_Min_Temperature,
-    #            'Surface_Downward_SW_Radiation': Surface_Downward_SW_Radiation,
-    #            'Surface_Downward_LW_Radiation': Surface_Downward_LW_Radiation,
-    #            'Surface_Relative_Humidity': Surface_Relative_Humidity,
-    #            'Precipitation': Precipitation,
-    #            'Surface_Air_Temperature': Surface_Air_Temperature}
+                'Albedo',
+                'Surface_Upward_SW_Radiation',
+                'Surface_Upward_LW_Radiation',
+                'Surface_Net_SW_Radiation',
+                'Surface_Net_LW_Radiation',
+                'Surface_Net_Radiation',
+                'Ground_Heat_Flux'},
+
+            "Forcings": {
+                'Diurnal_Temperature_Range',
+                'Diurnal_Max_Temperature',
+                'Diurnal_Min_Temperature',
+                'Surface_Downward_SW_Radiation',
+                'Surface_Downward_LW_Radiation',
+                'Surface_Relative_Humidity',
+                'Precipitation',
+                'Surface_Air_Temperature'}
+        }
+        return classifications
