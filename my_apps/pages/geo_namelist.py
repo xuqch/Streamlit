@@ -1,3 +1,5 @@
+import os
+import sys
 from geo_classification import initial_setting
 import time
 import subprocess
@@ -17,10 +19,10 @@ def set_General(General):
         General["compare_Gres"] = st.text_input('compare Gres: ', placeholder="Set your casename...")
 
     with col2:
-        General["Max_lat"] = st.number_input("Max latitude: ", value=General["Max_lat"])
-        General["Min_lat"] = st.number_input("Min latitude: ", value=General["Min_lat"])
-        General["Max_lon"] = st.number_input("Max Logitude: ", value=General["Max_lon"])
-        General["Min_lon"] = st.number_input("Min Logitude: ", value=General["Min_lon"])
+        General["Max_lat"] = st.number_input("Max latitude: ", value=General["Max_lat"], min_value=-90.0, max_value=90.0)
+        General["Min_lat"] = st.number_input("Min latitude: ", value=General["Min_lat"], min_value=-90.0, max_value=90.0)
+        General["Max_lon"] = st.number_input("Max Logitude: ", value=General["Max_lon"], min_value=-180.0, max_value=180.0)
+        General["Min_lon"] = st.number_input("Min Logitude: ", value=General["Min_lon"], min_value=-180.0, max_value=180.0)
 
     with col3:
         General["Syear"] = st.number_input("Syear: ", format='%04d', value=General["Syear"], step=int(1), placeholder="Start year...")
@@ -169,6 +171,117 @@ def set_expander(info, i):
     # return info
 
 
+def make_namelist(file_path, Generals, metrics, Evaluation_Items, information, classification):
+    """
+    Write a namelist from a text file.
+
+    Args:
+        file_path (str): Path to the text file.
+
+    """
+
+    with open(file_path, 'w') as f:
+        lines = []
+        end_line = "/\n\n\n"
+
+        lines.append("&General\n")
+
+        for key in list(Generals.keys())[:-1]:
+            lines.append(f"    {key}={Generals[f'{key}']}\n")
+        lines.append(
+            "  #========================Evaluation_Items====================\n\n  #*******************Ecosystem and Carbon Cycle****************\n")
+        for key in classification["Ecosystem and Carbon Cycle"]:
+            lines.append(f"    {key}={Evaluation_Items[f'{key}']}\n")
+
+        lines.append("\n\n  #*******************      Hydrology Cycle      ****************\n")
+
+        for key in classification["Hydrology Cycle"]:
+            lines.append(f"    {key}={Evaluation_Items[f'{key}']}\n")
+
+        lines.append("\n\n  #*******************  Radiation and Energy Cycle  *************\n")
+
+        for key in classification["Radiation and Energy Cycle"]:
+            lines.append(f"    {key}={Evaluation_Items[f'{key}']}\n")
+
+        lines.append("\n\n  #*******************         Forcings      **********************\n")
+
+        for key in classification["Forcings"]:
+            lines.append(f"    {key}={Evaluation_Items[f'{key}']}\n")
+
+        lines.append("\n\n\n  #========================other_setttings=======================\n")
+        key = list(Generals.keys())[-1]
+        lines.append(f"    {key}={Generals[key]}\n")
+        lines.append(end_line)
+
+        lines.append("&metrics\n")
+        for key, value in metrics.items():
+            lines.append(f"    {key}={value}\n")
+        lines.append(end_line)
+
+        lines.append("\n############################Ecosystem and Carbon Cycle############################\n")
+
+        for title in sorted(classification["Ecosystem and Carbon Cycle"]):
+            lines.append(f"&{title}_LIST\n")
+            for key, value in information[f"{title}_LIST"].items():
+                if (key == 'Obs_source') | (key == 'figplot') | (key == title):
+                    lines.append(f"\n    {key}  =     {value}\n")
+                else:
+                    lines.append(f"    {key}  =     {value}\n")
+            lines.append(end_line)
+
+        lines.append("\n############################      Hydrology Cycle      ############################\n")
+        for title in classification["Hydrology Cycle"]:
+            lines.append(f"&{title}_LIST\n")
+            for key, value in information[f"{title}_LIST"].items():
+                if (key == 'Obs_source') | (key == 'figplot') | (key == title):
+                    lines.append(f"\n    {key}  =     {value}\n")
+                else:
+                    lines.append(f"    {key}  =     {value}\n")
+            lines.append(end_line)
+
+        lines.append("\n########################     Radiation and Energy Cycle    ########################\n")
+        for title in classification["Radiation and Energy Cycle"]:
+            lines.append(f"&{title}_LIST\n")
+            for key, value in information[f"{title}_LIST"].items():
+                if (key == 'Obs_source') | (key == 'figplot') | (key == title):
+                    lines.append(f"\n    {key}  =     {value}\n")
+                else:
+                    lines.append(f"    {key}  =     {value}\n")
+            lines.append(end_line)
+
+        lines.append("\n########################               Forcings            ########################\n")
+        for title in classification["Forcings"]:
+            lines.append(f"&{title}_LIST\n")
+            for key, value in information[f"{title}_LIST"].items():
+                if (key == 'Obs_source') | (key == 'figplot') | (key == title):
+                    lines.append(f"\n    {key}  =     {value}\n")
+                else:
+                    lines.append(f"    {key}  =     {value}\n")
+            lines.append(end_line)
+
+        for line in lines:
+            f.write(line)
+
+
+def check_file(nml_file_path, key):
+    code = ''
+    reading = False
+    start_flag, end_flag = f'&{key}', '/'
+    content = []
+    with open(nml_file_path, 'r') as file:
+        nml_content = file.readlines()
+        for line in nml_content:
+            if start_flag in line.strip():
+                reading = True
+            if reading:
+                content.append(line.strip())  # 如果希望去除行尾的换行符，可以使用strip()
+            if ((end_flag in line) & ('=' not in line)) & (reading == True):
+                break
+    for line in content:
+        code = code + line + '\n'
+    return code
+
+
 if __name__ == "__main__":
     print('Create geo validation namelist -------------------')
 
@@ -186,27 +299,53 @@ if __name__ == "__main__":
     st.divider()
 
     # st.header("------------------------Evaluation Items---------------------------\n")
+    check_muti_on = st.toggle('Please Choose whether to perform multimodal comparison! ', value=False)
     Evaluation_Items = initial_information.Evaluation_Items()
     set_Evaluation_Items(Evaluation_Items)
     st.divider()
 
-    st.subheader("Add Validation info...")
-    modules = initial_information.modules()
-    information = initial_information.initial_information()
-    module_info = {}
-    i = 1
-    for module in modules:
-        if Evaluation_Items[f"{module}"]:
-            set_expander(information[f"{module}_LIST"], i)
-            # module_info[f"{module}_LIST"] = set_expander(information[f"{module}_LIST"], i)
-            i = i + 1
-    st.divider()
 
-    namelist_path = st.text_input('namelist path: ', './nml/', placeholder="Set your namelist path...")
-    if st.button('Run', type="primary"):
-        with st.spinner("Now initial..."):
-            subprocess.run('echo success', shell=True)
-            time.sleep(3)
-        st.success("Done!")
+    if check_muti_on:
+        st.write('Now you can .......')
+    else:
+        st.subheader("Add Validation info...")
+        modules = initial_information.modules()
+        information = initial_information.initial_information()
+        module_info = {}
+        i = 1
+        for module in modules:
+            if Evaluation_Items[f"{module}"]:
+                set_expander(information[f"{module}_LIST"], i)
+                # module_info[f"{module}_LIST"] = set_expander(information[f"{module}_LIST"], i)
+                i = i + 1
+        st.divider()
+
+        namelist_path = st.text_input('namelist path: ', './', placeholder="Set your namelist path...")
+        namelist_file = st.text_input('namelist filename: ', 'namelist_geo_FullList_test.nml', placeholder="Set your namelist filename...")
+        st.write('if you not sure for you file whether true or not, you can press tthis button to check')
+        check_on = st.toggle('Check your file')
+        # if 模块，位面写错路径或文件名
+        file = os.path.join(namelist_path, namelist_file)
+        print(file)
+        classification = initial_information.classification()
+        if st.button('make namelist', type="primary"):
+            with st.spinner("Now initial..."):
+                make_namelist(file, Generals, metrics, Evaluation_Items, information, classification)
+                time.sleep(3)
+            st.success("😉 Make file successfully!!! ")
+
+        if (check_on) & (st.button('check', type="primary")):
+            with st.expander("Show check"):
+                for key in ['General', 'metrics'] + [key + '_LIST' for key, values in Evaluation_Items.items() if values == True]:
+                    code = check_file(file, key)
+                    st.code(code, language='shell')
+
+        st.write('make sure your namelist is placed in right place')
+        st.write('Now you can .......')
+        if st.button('Run', type="primary"):
+            with st.spinner("Now initial..."):
+                subprocess.run('echo success', shell=True)
+                time.sleep(3)
+            st.success("Done!")
 
     exit(0)
